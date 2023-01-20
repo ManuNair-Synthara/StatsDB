@@ -31,3 +31,7 @@ db.add_var(name, dim, value)
 ```
 
 Dimensions are to provided as a string. "/"separator when dividing, "." separator when multiplying,
+
+## Limitations
+1. The tool currently only supports dimensions of power 1. If higher order dimensions are needed, we have to allow the DB to add inverse as well as higher order powers to the database for each entry. At the moment it only adds a value and its inverse.
+2. The tool does not understand dimensions, For example - it does not now that W and J/s are equivalent. it can also not be told that. to add this feature, we need to create some kind of an equivalence map between dimensions, which I have not done now.
