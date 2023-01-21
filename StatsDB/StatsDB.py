@@ -1,27 +1,8 @@
 import csv
 import itertools
-import re
 
 from .DimVar import DimVar
-
-
-def parse_tags(txt):
-    """
-    Parses a tag string in format "#as #b#c" to give a list ['a', 'b', 'c']
-
-    Args:
-        txt (str): Tag inputs string
-
-    Returns:
-        list: List of tags
-    """
-    p = re.compile('#([^  #]*)')
-    tags = set(p.findall(txt))
-    tag_list = []
-    for t in tags:
-        if t:
-            tag_list += [t]
-    return tag_list
+from .utils import is_list_subset, parse_tags
 
 
 class StatsDB():
@@ -59,8 +40,8 @@ class StatsDB():
                 new_tags = parse_tags(row["Tags"])
                 self.tags = self.tags.union(new_tags)
                 new_vars = self.create_var_from_txt(str.strip(row['Name']),
-                                        str.strip(row['Dim']),
-                                        str.strip(row['Value']))
+                                                    str.strip(row['Dim']),
+                                                    str.strip(row['Value']))
                 for tag in new_tags:
                     for new_var in new_vars:
                         self.add_to_db(tag, new_var)
@@ -73,7 +54,7 @@ class StatsDB():
             tag (str): New tag
             new_var (DimVar): New variable to be added
         """
-        
+
         if tag in self.tags_to_vars_dict.keys():
             self.tags_to_vars_dict[tag] += [new_var]
         else:
@@ -136,17 +117,17 @@ class StatsDB():
                 partial_match, new_var = DimVar.partial_dim_check(var=var,
                                                                   lhs=name,
                                                                   rhs=val)
-                new_vars = self.gen_entry(new_var,
+                new_vars = self.gen_inverse_var(new_var,
                                           ext="_in_"+name)
         else:
             # When adding new variables
             new_var = DimVar(name,
                              dim,
                              float(val))
-            new_vars = self.gen_entry(new_var)
+            new_vars = self.gen_inverse_var(new_var)
         return new_vars
 
-    def gen_entry(self,
+    def gen_inverse_var(self,
                   new_var,
                   ext: str = "_gen"):
         """
@@ -156,10 +137,8 @@ class StatsDB():
             new_var (DimVar): New variable to be added to the db
         """
         if new_var is not None:
-            self.variables.append(new_var)
             gen_var = DimVar.invert(new_var,
                                     new_var.name+ext)
-            self.variables.append(gen_var)
             return [new_var, gen_var]
         return None
 
@@ -175,18 +154,17 @@ class StatsDB():
             querydim (str): A string denoting the desired dimensions
             tags_txt (str, optional): Tags as a string. Ex "#CX #RX". Defaults
                                       to None.
-            total    (bool, optional): Enables addition of all query results to 
+            total    (bool, optional): Enables addition of all query results to
                                        a single value. Defaults to True
 
         Returns:
             DimVar: Dimvar object returned if computable, else None
         """
-        tags = parse_tags(tags_txt)
         queryvar = DimVar("Query",
                           querydim,
                           0)
-
-        if tags is not None:
+        if tags_txt is not None:
+            tags = parse_tags(tags_txt)
             queryDB = self.create_subset(tags)
         else:
             queryDB = self
@@ -197,16 +175,30 @@ class StatsDB():
 
         result = []
         # for every product combination of DimVars in dB
-        for n in range(len(queryDB.variables)):
-            var_tuples = itertools.combinations(queryDB.variables, n)
+        for n in range(len(queryDB.variables)+1):
+            var_tuples = itertools.combinations(queryDB.variables, n+1)
             for vars in var_tuples:
                 # Compute product
-                var_prod = DimVar.multiply(vars, "Result:")
-                # check if resulting dimensions match
-                if DimVar.compare_dim(var_prod, queryvar):
-                    # if yes, return value
-                    var_prod.print()
-                    result += [var_prod]
+                if self.check_for_common_tag(vars): # onlly if vars have shared tags
+                    # Only multiply if tags for the variables match
+                    var_prod = DimVar.multiply(vars, "Result:")
+                    # check if resulting dimensions match
+                    if DimVar.compare_dim(var_prod, queryvar):
+                        # if yes, return value
+                        related_vars = list(vars)
+                        # remove variables that come in name, name_gen pairs
+                        for var in related_vars:
+                            for check_var in related_vars:
+                                if check_var.name == var.name+"_gen":
+                                    related_vars.remove(var)
+                                    related_vars.remove(check_var)
+
+                        print("Related variables:")
+                        for v in vars:
+                            print("--- Var name: {}, Tag: {}".format(v.name,
+                                                                       self.get_tag_string(v)))
+                        var_prod.print(prefix="--- ")
+                        result += [var_prod]
         if total: # Print accumulated value for the query
             total_val = 0
             for r in result:
@@ -232,7 +224,10 @@ class StatsDB():
         Returns:
             bool: True if generated, False if not
         """
-        return var.name.endswith("_gen")
+        if var.name.find("_gen") == -1:
+            return False
+        else:
+            return True
 
     def print(self):
         """
@@ -260,11 +255,39 @@ class StatsDB():
         """
         # print the header
         with open(fname, "w") as csvfile:
-            csvfile.write("Name, Dim, Value \n")
+            csvfile.write("Name, Dim, Value, Tags \n")
             for var in self.variables:
                 if not self.check_if_generated(var):
-                    csvfile.write("{}, {}, {} \n".format(var.name,
-                                                         DimVar.gen_dimstr(var.nums,
-                                                                           var.dens),
-                                                         var.value))
+                    csvfile.write("{}, {}, {}, {} \n".format(var.name,
+                                                             DimVar.gen_dimstr(var.nums,
+                                                                               var.dens),
+                                                                               var.value,
+                                                                               self.get_tag_string(var)))
         return
+
+    def get_tag_string(self, var):
+        """
+        Generates key string for printing to output CSV
+
+        Args:
+            var (DimVar): Variable in dB
+        """
+        keys = list(self.vars_to_tags_dict[var])
+        keys_str = "#".join(keys)
+        return "#"+keys_str
+
+    def check_for_common_tag(self, vars):
+        """
+        Checks if there is any common tag between the variables
+
+        Args:
+            vars (list): List of variables to check
+
+        Returns:
+            bool: True if there is a shared tag, false otherwise
+        """
+        tag = self.vars_to_tags_dict[vars[0]]
+        for var in vars:
+            if not is_list_subset(tag, self.vars_to_tags_dict[var]):
+                return False
+        return True

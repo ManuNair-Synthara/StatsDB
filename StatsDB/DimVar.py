@@ -1,20 +1,4 @@
-def is_list_subset(sublist: list,
-                   superlist: list):
-    """
-    Checks if sublist is a subset of superlist
-
-    Args:
-        sublist (list): List to check
-        superlist (list): The supposed superset
-
-    Returns:
-        bool: True if subset, False if
-    """    
-    for entry in sublist:
-        if entry not in superlist:
-            return False
-
-    return True
+from .utils import is_list_subset
 
 
 class DimVar(object):
@@ -75,14 +59,16 @@ class DimVar(object):
                 self.dens += dims.split(".")
         return
 
-    def print(self):
+    def print(self,
+              prefix: str=""):
         """
         Print function for DimVar
         """
-        print("{} = {} {}".format(self.name,
-                                  self.value,
-                                  self.gen_dimstr(self.nums,
-                                                  self.dens)))
+        print("{}{} = {} {}".format(prefix,
+                                    self.name,
+                                    self.value,
+                                    self.gen_dimstr(self.nums,
+                                                    self.dens)))
 
     def reduce(self):
         """

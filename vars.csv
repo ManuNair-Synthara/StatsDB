@@ -1,7 +1,8 @@
 Name, Dim, Value, Tags
 operations, Op,2, #CX #TX
-hakuna, Op/J/s,10, #CX
-hakuna, Op/J/s,10, #TX
-ops_per_packet, Op/pkt,1, #RX
-speed, Op/s,5, #Boop
+axce, Op/J/s,10, #CX
+hhand, Op/J/s,10, #CX #TX
+ops_per_packet, Op/pkt,1, #CX #RX
+speed, Op/s,5, #Boop #CX
 W, =, J/s, 
+Hz, =, /s, 

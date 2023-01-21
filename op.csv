@@ -1,6 +1,6 @@
-Name, Dim, Value 
-operations, Op/, 2.0 
-hakuna, Op.s/J, 10.0 
-ops_per_packet, Op/pkt, 1.0 
-speed, Op/s, 5.0 
-hakuna_gen_in_W, Op/W, 10.0 
+Name, Dim, Value, Tags 
+operations, Op/, 2.0, #CX#TX 
+axce, Op.s/J, 10.0, #CX 
+hhand, Op.s/J, 10.0, #CX#TX 
+ops_per_packet, Op/pkt, 1.0, #CX#RX 
+speed, Op/s, 5.0, #CX#Boop 
