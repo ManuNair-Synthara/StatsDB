@@ -1,3 +1,10 @@
+def is_list_subset(sublist: list, 
+                   superlist: list):
+    for l in sublist:
+        if l not in superlist:
+            return False
+
+    return True
 class DimVar(object):
     """
     Object to store and parse a dimenstion object
@@ -97,8 +104,8 @@ class DimVar(object):
         # Create a new variable placeholder to help clean up the input string format
         rhs_var = DimVar("rhs_var", rhs, 0)
         # check if new_var nums/dens is a subset of var nums/dens
-        nums_check = all(x in var.nums for x in rhs_var.nums)
-        dens_check = all(x in var.dens for x in rhs_var.dens)
+        nums_check = is_list_subset(rhs_var.nums, var.nums)
+        dens_check = is_list_subset(rhs_var.dens, var.dens)
         partial_match = nums_check and dens_check
         if partial_match:
             # Create a new value to return, first only add the new dim
