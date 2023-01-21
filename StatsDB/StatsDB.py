@@ -21,9 +21,21 @@ class StatsDB():
             header = [h.strip() for h in csvfile.readline().split(',')]
             reader = csv.DictReader(csvfile, fieldnames=header)
             for row_idx, row in enumerate(reader):
-                self.add_var(str.strip(row['Variable']),
+                self.add_var(str.strip(row['Name']),
                              str.strip(row['Dim']),
                              str.strip(row['Value']))
+
+    def check_if_generated(self, var):
+        """
+        Checks if the var is a generated one for the database, ex - inverse
+
+        Args:
+            var (DimVar): variable to be checked
+
+        Returns:
+            _type_: _description_
+        """
+        return var.name.endswith("_gen")
 
     def print(self):
         """
@@ -31,14 +43,28 @@ class StatsDB():
 
         Args:
             verbosity (str, optional): If min only prints main variables. Defaults to "min".
-        """        
+        """
         print("="*80)
         print("Printing all database variables")
         print("-"*80)
         for var in self.vars:
-            # Only print variables and not their inverses
-            var.print()
+            # Only print input variables and not generated ones
+            if not self.check_if_generated(var):
+                var.print()
         print("="*80)
+
+    def write_db_to_csv(self,
+                        fname):
+        # print the header
+        with open(fname, "w") as csvfile:
+            csvfile.write("Name, Dim, Value \n")
+            for var in self.vars:
+                if not self.check_if_generated(var):
+                    csvfile.write("{}, {}, {} \n".format(var.name,
+                                                         DimVar.gen_dimstr(var.nums,
+                                                                           var.dens),
+                                                         var.value))
+        return
 
     def add_var(self,
                 name,
@@ -57,21 +83,31 @@ class StatsDB():
             # For each entry in the dB
             for var in self.vars:
                 # Check if the right hand side set of variables exist
-                partial_match, renamed_var = DimVar.partial_dim_check(var=var,
-                                                                      lhs=name,
-                                                                      rhs=val)
-                if renamed_var is not None:
-                    self.vars.append(renamed_var)
-                    self.vars.append(DimVar.invert(renamed_var,
-                                                   renamed_var.name+"_inv"))
-
+                partial_match, new_var = DimVar.partial_dim_check(var=var,
+                                                                  lhs=name,
+                                                                  rhs=val)
+                self.add_entry(new_var,
+                               ext="_in_"+name)
         else:
             # When adding new variables
-            var = DimVar(name,
-                         dim,
-                         float(val))
-            self.vars.append(var)
-            self.vars.append(DimVar.invert(var, var.name+"_inv"))
+            new_var = DimVar(name,
+                             dim,
+                             float(val))
+            self.add_entry(new_var)
+
+    def add_entry(self,
+                  new_var,
+                  ext: str="_gen"):
+        """
+        Adds a new entry and its inverse to the database
+
+        Args:
+            new_var (DimVar): New variable to be added to the db
+        """
+        if new_var is not None:
+            self.vars.append(new_var)
+            self.vars.append(DimVar.invert(new_var,
+                                           new_var.name+ext))
 
     def query(self,
               querydim):

@@ -1,0 +1,6 @@
+Name, Dim, Value 
+operations, Op/, 2.0 
+hakuna, Op.s/J, 10.0 
+ops_per_packet, Op/pkt, 1.0 
+speed, Op/s, 5.0 
+hakuna_gen_in_W, Op/W, 10.0 

@@ -1,7 +1,17 @@
 def is_list_subset(sublist: list,
                    superlist: list):
-    for l in sublist:
-        if l not in superlist:
+    """
+    Checks if sublist is a subset of superlist
+
+    Args:
+        sublist (list): List to check
+        superlist (list): The supposed superset
+
+    Returns:
+        bool: True if subset, False if
+    """    
+    for entry in sublist:
+        if entry not in superlist:
             return False
 
     return True
