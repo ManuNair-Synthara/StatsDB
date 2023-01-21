@@ -37,14 +37,10 @@ class StatsDB():
             reader = csv.DictReader(csvfile, fieldnames=header)
 
             for row_idx, row in enumerate(reader):
-                new_tags = parse_tags(row["Tags"])
-                self.tags = self.tags.union(new_tags)
-                new_vars = self.create_var_from_txt(str.strip(row['Name']),
-                                                    str.strip(row['Dim']),
-                                                    str.strip(row['Value']))
-                for tag in new_tags:
-                    for new_var in new_vars:
-                        self.add_to_db(tag, new_var)
+                new_vars, new_tags = self.add_vars_from_txt(str.strip(row['Name']),
+                                                            str.strip(row['Dim']),
+                                                            str.strip(row['Value']),
+                                                            row["Tags"])
 
     def add_to_db(self, tag, new_var):
         """
@@ -97,10 +93,11 @@ class StatsDB():
                 new_db.add_to_db(tag, var)
         return new_db
 
-    def create_var_from_txt(self,
-                name,
-                dim,
-                val):
+    def add_vars_from_txt(self,
+                          name,
+                          dim,
+                          val,
+                          tags):
         """
         Creates a new DimVar object to the database given string inputs
 
@@ -109,37 +106,52 @@ class StatsDB():
             dim (str): Dimensions of the variable. For format check DimVar
             val (float): Value of the variable
         """
+        new_vars = []
         if dim == "=":
             # Adding a new dimension equivalent. Ex: W = J/s
             # For each entry in the dB
+            new_tags = []
             for var in self.variables:
                 # Check if the right hand side set of variables exist
-                partial_match, new_var = DimVar.partial_dim_check(var=var,
-                                                                  lhs=name,
-                                                                  rhs=val)
-                new_vars = self.gen_inverse_var(new_var,
-                                          ext="_in_"+name)
+                partial_match, new_var_dimstr = DimVar.partial_dim_check(var=var,
+                                                                         lhs=name,
+                                                                         rhs=val)
+                if new_var_dimstr is not None:
+                    new_var = DimVar(var.name+"in_"+name,
+                                     new_var_dimstr,
+                                     var.value)
+                    new_vars = [new_var, self.gen_inverse_var(new_var)]
+                    for new_var in new_vars:
+                        for tag in self.vars_to_tags_dict[var]:
+                            self.add_to_db(tag, new_var)
+
         else:
+            new_tags = parse_tags(tags)
+            self.tags = self.tags.union(new_tags)
+
             # When adding new variables
             new_var = DimVar(name,
                              dim,
                              float(val))
-            new_vars = self.gen_inverse_var(new_var)
-        return new_vars
+            new_vars += [new_var, self.gen_inverse_var(new_var)]
+            for tag in new_tags:
+                for new_var in new_vars:
+                    self.add_to_db(tag, new_var)
+        return new_vars, new_tags
 
     def gen_inverse_var(self,
-                  new_var,
-                  ext: str = "_gen"):
+                        var,
+                        ext: str = "_gen"):
         """
         Adds a new entry and its inverse to the database
 
         Args:
             new_var (DimVar): New variable to be added to the db
         """
-        if new_var is not None:
-            gen_var = DimVar.invert(new_var,
-                                    new_var.name+ext)
-            return [new_var, gen_var]
+        if var is not None:
+            gen_var = DimVar.invert(var,
+                                    var.name+ext)
+            return gen_var
         return None
 
     def query(self,

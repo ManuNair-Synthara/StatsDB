@@ -1,4 +1,4 @@
-from .utils import is_list_subset
+from .utils import is_list_subset, drop_nulls
 
 
 class DimVar(object):
@@ -57,6 +57,9 @@ class DimVar(object):
                 self.nums += dims.split(".")
             else:
                 self.dens += dims.split(".")
+        
+        self.nums = drop_nulls(self.nums)
+        self.dens = drop_nulls(self.dens)
         return
 
     def print(self,
@@ -113,7 +116,7 @@ class DimVar(object):
             lhs_var.nums += [n for n in var.nums if n not in rhs_var.nums]
             lhs_var.dens += [d for d in var.dens if d not in rhs_var.dens]
 
-            return partial_match, lhs_var
+            return partial_match, cls.gen_dimstr(lhs_var.nums, lhs_var.dens)
         return partial_match, None
 
 
