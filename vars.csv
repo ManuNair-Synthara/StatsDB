@@ -1,6 +1,7 @@
-Name, Dim, Value
-operations, Op,2
-hakuna, Op/J/s,10
-ops_per_packet, Op/pkt,1
-speed, Op/s,5
-W, =, J/s
+Name, Dim, Value, Tags
+operations, Op,2, #CX #TX
+hakuna, Op/J/s,10, #CX
+hakuna, Op/J/s,10, #TX
+ops_per_packet, Op/pkt,1, #RX
+speed, Op/s,5, #Boop
+W, =, J/s, 
