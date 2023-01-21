@@ -22,7 +22,16 @@ class StatsDB():
             for row_idx, row in enumerate(reader):
                 self.add_var(str.strip(row['Variable']),
                              str.strip(row['Dim']),
-                             float(str.strip(row['Value'])))
+                             str.strip(row['Value']))
+
+    def print(self):
+        """
+        Simply print all variables in db
+        """
+        print("-"*80)
+        for var in self.vars:
+            var.print()
+        print("-"*80)
 
     def add_var(self,
                 name,
@@ -36,11 +45,26 @@ class StatsDB():
             dim (str): Dimensions of the variable. For format check DimVar
             val (float): Value of the variable
         """
-        var = DimVar(name,
-                     dim,
-                     val)
-        self.vars.append(var)
-        self.vars.append(DimVar.invert(var, var.name+"_inv"))
+        if dim == "=":
+            # Adding a new dimension equivalent. Ex: W = J/s
+            # For each entry in the dB
+            for var in self.vars:
+                # Check if the right hand side set of variables exist
+                partial_match, renamed_var = DimVar.partial_dim_check(var=var,
+                                                                      lhs=name,
+                                                                      rhs=val)
+                if renamed_var is not None:
+                    self.vars.append(renamed_var)
+                    self.vars.append(DimVar.invert(renamed_var,
+                                                   renamed_var.name+"_inv"))
+
+        else:
+            # When adding new variables
+            var = DimVar(name,
+                         dim,
+                         float(val))
+            self.vars.append(var)
+            self.vars.append(DimVar.invert(var, var.name+"_inv"))
 
     def query(self,
               querydim):
@@ -61,12 +85,12 @@ class StatsDB():
             var_tuples = itertools.combinations(self.vars, n)
             for vars in var_tuples:
                 # Compute product
-                var_prod = DimVar.multiply(vars, "Query")
+                var_prod = DimVar.multiply(vars, "Product")
                 # check if resulting dimensions match
                 if DimVar.compare_dim(var_prod, queryvar):
                     # if yes, return value
                     print("Value found")
-                    var_prod.var_print()
+                    var_prod.print()
                     return var_prod
         # if no, return False saying expression cannot be computed
         print("Given dims cannot be computed")

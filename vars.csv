@@ -1,5 +1,6 @@
 Variable,Dim,Value
 operations, Op,2
+hakuna, Op/J/s,10
 ops_per_packet, Op/pkt,1
-watt, J/s,1
 speed, Op/s,5
+W, =, J/s

@@ -28,7 +28,7 @@ class DimVar(object):
 
         Args:
             name (str): New name
-        """        
+        """
         self.name = name
 
     def assign(self,
@@ -39,7 +39,7 @@ class DimVar(object):
         Args:
             value (float): new value
         """
-        self.value = value       
+        self.value = value
 
     def dimsstr_parse(self):
         """
@@ -56,7 +56,7 @@ class DimVar(object):
                 self.dens += dims.split(".")
         return
 
-    def var_print(self):
+    def print(self):
         """
         Print function for DimVar
         """
@@ -77,6 +77,41 @@ class DimVar(object):
         return
 
     @classmethod
+    def partial_dim_check(cls,
+                          var,
+                          lhs: str,
+                          rhs: str):
+        """
+        Checks if the rhs dims are present in the var.
+        If it is present, then it returns a DimVar with
+        rhs dims replaced by the lhs in var
+
+        Args:
+            var (DimVar): Variable that we want to check
+            lhs (str): The new dimension. Ex: W
+            rhs (str): The dimension to be added if lhs exists
+
+        Returns:
+            bool, Dimvar: True if partial match, new DimVar with replaced dims
+        """
+        # Create a new variable placeholder to help clean up the input string format
+        rhs_var = DimVar("rhs_var", rhs, 0)
+        # check if new_var nums/dens is a subset of var nums/dens
+        nums_check = all(x in var.nums for x in rhs_var.nums)
+        dens_check = all(x in var.dens for x in rhs_var.dens)
+        partial_match = nums_check and dens_check
+        if partial_match:
+            # Create a new value to return, first only add the new dim
+            lhs_var = DimVar(var.name, lhs, var.value)
+            # Now add the remaining dims
+            lhs_var.nums += [n for n in var.nums if n not in rhs_var.nums]
+            lhs_var.dens += [d for d in var.dens if d not in rhs_var.dens]
+
+            return partial_match, lhs_var
+        return partial_match, None
+
+
+    @classmethod
     def compare_dim(cls,
                     var1,
                     var2):
@@ -90,10 +125,10 @@ class DimVar(object):
         Returns:
             Bool: True if matches, false if not
         """
-        a_num_set = set(var1.nums)
-        a_den_set = set(var1.dens)
-        b_num_set = set(var2.nums)
-        b_den_set = set(var2.dens)
+        a_num_set = sorted(var1.nums)
+        a_den_set = sorted(var1.dens)
+        b_num_set = sorted(var2.nums)
+        b_den_set = sorted(var2.dens)
 
         if (a_num_set == b_num_set) and (a_den_set == b_den_set):
             return True
