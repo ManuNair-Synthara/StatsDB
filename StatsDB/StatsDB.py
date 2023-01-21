@@ -165,7 +165,8 @@ class StatsDB():
 
     def query(self,
               querydim,
-              tags_txt: str = None):
+              tags_txt: str = None,
+              total: bool = True):
 
         """
         Query the database to compute a particular value with given dimensions
@@ -174,6 +175,8 @@ class StatsDB():
             querydim (str): A string denoting the desired dimensions
             tags_txt (str, optional): Tags as a string. Ex "#CX #RX". Defaults
                                       to None.
+            total    (bool, optional): Enables addition of all query results to 
+                                       a single value. Defaults to True
 
         Returns:
             DimVar: Dimvar object returned if computable, else None
@@ -198,12 +201,21 @@ class StatsDB():
             var_tuples = itertools.combinations(queryDB.variables, n)
             for vars in var_tuples:
                 # Compute product
-                var_prod = DimVar.multiply(vars, "Query result:")
+                var_prod = DimVar.multiply(vars, "Result:")
                 # check if resulting dimensions match
                 if DimVar.compare_dim(var_prod, queryvar):
                     # if yes, return value
                     var_prod.print()
                     result += [var_prod]
+        if total: # Print accumulated value for the query
+            total_val = 0
+            for r in result:
+                total_val += r.value
+            total_var = DimVar("Total",
+                               querydim,
+                               total_val)
+            total_var.print()
+
         if len(result)==0:
             print("Query gave no results: {} tag: {}".format(querydim,
                                                              tags_txt))
