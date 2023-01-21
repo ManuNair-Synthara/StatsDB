@@ -1,4 +1,4 @@
-Variable,Dim,Value
+Variable, Dim, Value
 operations, Op,2
 hakuna, Op/J/s,10
 ops_per_packet, Op/pkt,1

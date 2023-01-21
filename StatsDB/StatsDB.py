@@ -18,7 +18,8 @@ class StatsDB():
         """
         self.vars = []
         with open(csv_fname) as csvfile:
-            reader = csv.DictReader(csvfile)
+            header = [h.strip() for h in csvfile.readline().split(',')]
+            reader = csv.DictReader(csvfile, fieldnames=header)
             for row_idx, row in enumerate(reader):
                 self.add_var(str.strip(row['Variable']),
                              str.strip(row['Dim']),
@@ -26,12 +27,18 @@ class StatsDB():
 
     def print(self):
         """
-        Simply print all variables in db
-        """
+        Print all variables in the dB
+
+        Args:
+            verbosity (str, optional): If min only prints main variables. Defaults to "min".
+        """        
+        print("="*80)
+        print("Printing all database variables")
         print("-"*80)
         for var in self.vars:
+            # Only print variables and not their inverses
             var.print()
-        print("-"*80)
+        print("="*80)
 
     def add_var(self,
                 name,
@@ -85,11 +92,10 @@ class StatsDB():
             var_tuples = itertools.combinations(self.vars, n)
             for vars in var_tuples:
                 # Compute product
-                var_prod = DimVar.multiply(vars, "Product")
+                var_prod = DimVar.multiply(vars, "Query result")
                 # check if resulting dimensions match
                 if DimVar.compare_dim(var_prod, queryvar):
                     # if yes, return value
-                    print("Value found")
                     var_prod.print()
                     return var_prod
         # if no, return False saying expression cannot be computed
