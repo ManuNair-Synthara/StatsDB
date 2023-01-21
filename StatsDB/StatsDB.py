@@ -141,7 +141,7 @@ class StatsDB():
 
     def gen_inverse_var(self,
                         var,
-                        ext: str = "_gen"):
+                        ext: str = "_inv"):
         """
         Adds a new entry and its inverse to the database
 
@@ -198,10 +198,12 @@ class StatsDB():
                     if DimVar.compare_dim(var_prod, queryvar):
                         # if yes, return value
                         related_vars = list(vars)
-                        # remove variables that come in name, name_gen pairs
+                        # remove variables that come in name, name_inv pairs 
+                        # because their product is 1. They will be part of 
+                        # all tuple combinations generated given the variables
                         for var in related_vars:
                             for check_var in related_vars:
-                                if check_var.name == var.name+"_gen":
+                                if check_var.name == var.name+"_inv":
                                     related_vars.remove(var)
                                     related_vars.remove(check_var)
 
@@ -236,7 +238,7 @@ class StatsDB():
         Returns:
             bool: True if generated, False if not
         """
-        if var.name.find("_gen") == -1:
+        if var.name.find("_inv") == -1:
             return False
         else:
             return True
