@@ -1,0 +1,15 @@
+Name, Dim, Value, Tags 
+Efficiency, Op.W/s, 50000000000000.0, #CX#MVM 
+Ops_per_packet, Op/pkt, 2016.0, #CX#MVM 
+Speed, Op/s, 17.0, #CX#MVM 
+Rx cost, J/, 2e-15, #RX#MVM 
+Tx_cost, J/, 2e-15, #TX#MVM 
+Efficiency, Op.W/s, 1000000000000.0, #CX#PAP 
+Ops_per_packet, Op/pkt, 32.0, #CX#PAP 
+Speed, Op/s, 5.0, #CX#PAP 
+Rx cost, J/, 2e-15, #PAP#RX 
+Tx_cost, J/, 2e-15, #TX#PAP 
+Efficiencyin_Hz, Hz.Op.W/, 50000000000000.0, #CX#MVM 
+Speedin_Hz, Hz.Op/, 17.0, #CX#MVM 
+Efficiencyin_Hz, Hz.Op.W/, 1000000000000.0, #CX#PAP 
+Speedin_Hz, Hz.Op/, 5.0, #CX#PAP 
