@@ -1,10 +1,12 @@
-def is_list_subset(sublist: list, 
+def is_list_subset(sublist: list,
                    superlist: list):
     for l in sublist:
         if l not in superlist:
             return False
 
     return True
+
+
 class DimVar(object):
     """
     Object to store and parse a dimenstion object
@@ -69,7 +71,8 @@ class DimVar(object):
         """
         print("{} = {} {}".format(self.name,
                                   self.value,
-                               self.gen_dimstr(self.nums, self.dens)))
+                                  self.gen_dimstr(self.nums,
+                                                  self.dens)))
 
     def reduce(self):
         """

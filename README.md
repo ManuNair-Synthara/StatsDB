@@ -38,6 +38,15 @@ db.add_var(name, dim, value)
 
 Dimensions are to provided as a string. "/"separator when dividing, "." separator when multiplying,
 
-## Limitations
+## How does it work?
+- Every variable's dimensions are stored in num/den format. 
+- Its inverse is also stored. 
+- When a query is made, then all possible combinations of the variables are tested.
+- If higher powers are to be supported, then those powers and inverse power will need to be stored or at least searched. This is not implemented.
+- If there are n entries in the dB, each search costs O(2ˆn).
+
+
+## Limitations and possible new features
 1. The tool currently only supports dimensions of power 1. If higher order dimensions are needed, we have to allow the DB to add inverse as well as higher order powers to the database for each entry. At the moment it only adds a value and its inverse.
 2. The tool does not understand dimensions, For example - it does not now that W and J/s are equivalent.
+3. If there are multiple variables with the same dimension, it will not work properly. For example, Cx cost is stored as energy and Tx cost is stored as energy. If a new value is queried, it cannot be made only on the basis of a dimension. It will also have to be made in terms of the variable name. It would be good to add this feature.
